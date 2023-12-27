@@ -138,7 +138,7 @@ def parse_args():
     parse.add_argument('--pretrain_path',
                       dest='pretrain_path',
                       type=str,
-                      default='',
+                      default='./model_maxmIOU50.pth',
     )
     parse.add_argument('--use_conv_last',
                        dest='use_conv_last',
@@ -233,7 +233,9 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+    # model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_path=args.pretrain_path, use_conv_last=args.use_conv_last)
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+    model.load_state_dict(torch.load(args.pretrain_path), strict=False)
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()

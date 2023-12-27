@@ -3,19 +3,21 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
+from torchvision.transforms import Compose, ToTensor
 # TODO
 
 
 class CityScapes(Dataset):
     def __init__(self, mode):
         super(CityScapes, self).__init__()
-        
         if mode == "train":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/train")
             root_labels = Path(r"./Datasets/Cityscapes/Cityspaces/gtFine/train")
+            self.subdirs = ["hanover", "jena", "krefeld", "monchengladbach", "strasbourg", "stuttgart", "tubingen", "ulm", "weimar", "zurich"]
         elif mode == "val":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/val")
             root_labels = Path(r"./Datasets/Cityscapes/Cityspaces/gtFine/val")
+            self.subdirs = ["frankfurt", "lindau", "munster"]
         else:
             raise Exception()
         
@@ -27,26 +29,22 @@ class CityScapes(Dataset):
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-
+        transform = Compose([ToTensor()])
         img1 = Image.open(path)
         img2 = Image.open(label)
 
-        return img1, img2
+        return transform(img1.convert('RGB')), transform(img2.convert('RGB'))
+
 
     def __len__(self):
         return len(self.samples)
 
-    def _collect_samples(self):
-        """Collect all paths and labels
-        
-        Helper method for the constructor
-        """
-        sample_subdirs = ["hanover", "jena", "krefeld", "monchengladbach", "strasbourg", "stuttgart", "tubingen", "ulm", "weimar", "zurich"]
 
+    def _collect_samples(self):
         sample_path = []
         label_path = []
 
-        for p in sample_subdirs:
+        for p in self.subdirs:
             sample_path += self._collect_imgs_sub_dir((self.root_samples / p), False)
             label_path += self._collect_imgs_sub_dir((self.root_labels / p), True)
 
@@ -54,6 +52,7 @@ class CityScapes(Dataset):
         label_path = sorted(label_path)
 
         return list(zip(sample_path, label_path))
+
 
     @staticmethod
     def _collect_imgs_sub_dir(sub_dir: Path, val: bool):
