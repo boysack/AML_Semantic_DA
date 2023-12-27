@@ -71,13 +71,14 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
-        for i, (data, label) in enumerate(dataloader_train):
+        for i, (data, label) in enumerate(dataloader_train):     
             data = data.cuda()
             label = label.long().cuda()
             optimizer.zero_grad()
 
             with amp.autocast():
                 output, out16, out32 = model(data)
+                label = label[:, 1, :, :] # <<<
                 loss1 = loss_func(output, label.squeeze(1))
                 loss2 = loss_func(out16, label.squeeze(1))
                 loss3 = loss_func(out32, label.squeeze(1))
@@ -138,7 +139,7 @@ def parse_args():
     parse.add_argument('--pretrain_path',
                       dest='pretrain_path',
                       type=str,
-                      default='./model_maxmIOU50.pth',
+                      default='./STDCNet813M_73.91.tar',
     )
     parse.add_argument('--use_conv_last',
                        dest='use_conv_last',
@@ -170,7 +171,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=2,
+                       default=256,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
@@ -233,9 +234,9 @@ def main():
                        drop_last=False)
 
     ## model
-    # model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_path=args.pretrain_path, use_conv_last=args.use_conv_last)
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
-    model.load_state_dict(torch.load(args.pretrain_path), strict=False)
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_path=args.pretrain_path, use_conv_last=args.use_conv_last)
+    #model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+    #model.load_state_dict(torch.load(args.pretrain_path), strict=False)
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()

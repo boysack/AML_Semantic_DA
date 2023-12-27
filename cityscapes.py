@@ -41,17 +41,17 @@ class CityScapes(Dataset):
 
 
     def _collect_samples(self):
-        sample_path = []
-        label_path = []
+        samples = []
+        labels = []
 
         for p in self.subdirs:
-            sample_path += self._collect_imgs_sub_dir((self.root_samples / p), False)
-            label_path += self._collect_imgs_sub_dir((self.root_labels / p), True)
+            samples += self._collect_imgs_sub_dir((self.root_samples / p), False)
+            labels += self._collect_imgs_sub_dir((self.root_labels / p), True)
 
-        sample_path = sorted(sample_path)
-        label_path = sorted(label_path)
+        samples = sorted(samples)
+        labels = sorted(labels)
 
-        return list(zip(sample_path, label_path))
+        return list(zip(samples, labels))
 
 
     @staticmethod
