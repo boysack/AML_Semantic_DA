@@ -3,7 +3,7 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import Compose, ToTensor
+from torchvision.transforms import Compose, ToTensor, Resize
 # TODO
 
 
@@ -23,17 +23,15 @@ class CityScapes(Dataset):
         
         self.root_samples = root_samples
         self.root_labels = root_labels
-
+        self.transform = Compose([Resize((512, 1024)), ToTensor()])
         self.samples = self._collect_samples()
 
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        transform = Compose([ToTensor()])
         img1 = Image.open(path)
         img2 = Image.open(label)
-
-        return transform(img1.convert('RGB')), transform(img2.convert('RGB'))
+        return self.transform(img1), self.transform(img2)
 
 
     def __len__(self):
@@ -61,4 +59,4 @@ class CityScapes(Dataset):
         if val == False:
             return list(sub_dir.glob("*.png"))
         else:
-            return list(sub_dir.glob("*color.png"))
+            return list(sub_dir.glob("*Ids.png"))
