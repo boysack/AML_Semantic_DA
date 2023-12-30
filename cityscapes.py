@@ -28,7 +28,7 @@ class CityScapes(Dataset):
         self.samples = self._collect_samples()
 
 
-    def getitem(self, idx):
+    def __getitem__(self, idx):
         path, label = self.samples[idx]
         img1 = Image.open(path)
         img2 = Image.open(label)
