@@ -261,6 +261,6 @@ def main():
     val(args, model, dataloader_val)
 
 if __name__ == "__main__":
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "heuristic"
+    # os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "heuristic"
     # os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "pooled"
     main()
