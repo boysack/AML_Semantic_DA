@@ -13,6 +13,8 @@ from utils import poly_lr_scheduler
 from utils import reverse_one_hot, compute_global_accuracy, fast_hist, per_class_iu
 from tqdm import tqdm
 
+import os
+
 
 logger = logging.getLogger()
 
@@ -258,4 +260,6 @@ def main():
     val(args, model, dataloader_val)
 
 if __name__ == "__main__":
+    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "heuristic"
+    # os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "pooled"
     main()
