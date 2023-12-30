@@ -71,7 +71,8 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
-        for i, (data, label) in enumerate(dataloader_train):     
+        for i, (data, label) in enumerate(dataloader_train):
+            torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()
             optimizer.zero_grad()
@@ -146,7 +147,7 @@ def parse_args():
                        default=False,
     )
     parse.add_argument('--num_epochs',
-                       type=int, default=300,
+                       type=int, default=50,
                        help='Number of epochs to train for')
     parse.add_argument('--epoch_start_i',
                        type=int,
@@ -170,7 +171,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=256,
+                       default=32,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
@@ -178,7 +179,7 @@ def parse_args():
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
-                       default=4,
+                       default=2,
                        help='num of workers')
     parse.add_argument('--num_classes',
                        type=int,
@@ -194,7 +195,7 @@ def parse_args():
                        help='whether to user gpu for training')
     parse.add_argument('--save_model_path',
                        type=str,
-                       default=None,
+                       default='./results',
                        help='path to save model')
     parse.add_argument('--optimizer',
                        type=str,
