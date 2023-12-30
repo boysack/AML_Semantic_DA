@@ -24,7 +24,7 @@ class CityScapes(Dataset):
         
         self.root_samples = root_samples
         self.root_labels = root_labels
-        self.transform = Compose([Resize((512, 1024)), ToTensor()])
+        self.transform = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
         self.samples = self._collect_samples()
 
 
@@ -32,8 +32,7 @@ class CityScapes(Dataset):
         path, label = self.samples[idx]
         img1 = Image.open(path)
         img2 = Image.open(label)
-        img2 = Compose([Resize((512, 1024))])(img2)
-        return self.transform(img1), torch.tensor(img2.getdata()).view(512, 1024)
+        return self.transform(img1), 255*self.transform(img2)
 
 
     def __len__(self):

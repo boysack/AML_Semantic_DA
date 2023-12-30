@@ -77,7 +77,6 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
             torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()
-            print(label.min(), label.max())
             optimizer.zero_grad()
 
             with amp.autocast():
