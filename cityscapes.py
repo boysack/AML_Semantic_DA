@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
 from torchvision.transforms import Compose, ToTensor, Resize
+import torch
 # TODO
 
 
@@ -27,11 +28,12 @@ class CityScapes(Dataset):
         self.samples = self._collect_samples()
 
 
-    def __getitem__(self, idx):
+    def getitem(self, idx):
         path, label = self.samples[idx]
         img1 = Image.open(path)
         img2 = Image.open(label)
-        return self.transform(img1), self.transform(img2)
+        img2 = Compose([Resize((512, 1024))])(img2)
+        return self.transform(img1), torch.tensor(img2.getdata()).view(512, 1024)
 
 
     def __len__(self):
