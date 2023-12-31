@@ -14,6 +14,7 @@ from utils import reverse_one_hot, compute_global_accuracy, fast_hist, per_class
 from tqdm import tqdm
 
 import os
+from gta import GTA
 
 
 logger = logging.getLogger()
@@ -220,7 +221,7 @@ def main():
 
     mode = args.mode
 
-    train_dataset = CityScapes(mode)
+    train_dataset = GTA(mode)
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=False,
@@ -228,7 +229,7 @@ def main():
                     pin_memory=False,
                     drop_last=True)
 
-    val_dataset = CityScapes(mode='val')
+    val_dataset = GTA(mode='val')
     dataloader_val = DataLoader(val_dataset,
                        batch_size=1,
                        shuffle=False,
