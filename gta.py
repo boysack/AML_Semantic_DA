@@ -3,33 +3,52 @@ from pathlib import Path
 from PIL import Image
 from torchvision.transforms import Compose, Resize, ToTensor, Grayscale
 import random
+import numpy as np
+import torch
 # TODO
+
 
 
 class GTA(Dataset):
     def __init__(self, mode):
         super(GTA, self).__init__()
         if mode == "train":
-            root_samples = Path(r"./Datasets/GTA5/images/train")
-            root_labels = Path(r"./Datasets/GTA5/labels/train")
+            self.root_samples = [Path(r"./Datasets/GTA5/images/train")]
+            self.root_labels = [Path(r"./Datasets/GTA5/labels/train")]
         elif mode == "val":
-            root_samples = Path(r"./Datasets/GTA5/images/val")
-            root_labels = Path(r"./Datasets/GTA5/labels/val")
+            self.root_samples = [Path(r"./Datasets/GTA5/images/val")]
+            self.root_labels = [Path(r"./Datasets/GTA5/labels/val")]
+        elif mode == "all":
+            self.root_samples = [Path(r"./Datasets/GTA5/images/train"), Path(r"./Datasets/GTA5/images/val")]
+            self.root_labels = [Path(r"./Datasets/GTA5/labels/train"), Path(r"./Datasets/GTA5/labels/val")]
         else:
             raise Exception()
         
-        self.root_samples = root_samples
-        self.root_labels = root_labels
-        self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
-        self.transform2 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), Grayscale(), ToTensor()])
-        self.samples = self._collect_samples()
+        self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
+                              19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
+                              26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
         
+        
+        self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
+        self.transform2 = Compose([Resize((512, 1024), interpolation=Image.NEAREST)])
+        
+        self.samples = []
+        self.samples += self._collect_samples()
+  
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
         img1 = Image.open(path)
         img2 = Image.open(label) 
-        return self.transform1(img1), 255*self.transform2(img2)
+        img2 = self.transform2(img2)
+
+        img2 = np.asarray(img2, np.float32)
+
+        label_copy = 255 * np.ones(img2.shape, dtype=np.float32)
+        for k, v in self.id_to_trainid.items():
+            label_copy[img2 == k] = v
+
+        return self.transform1(img1), torch.tensor(label_copy.copy(), dtype=torch.long)
 
 
     def __len__(self):
@@ -44,8 +63,11 @@ class GTA(Dataset):
         samples = []
         labels = []
 
-        samples += self._collect_imgs_sub_dir(self.root_samples)
-        labels += self._collect_imgs_sub_dir(self.root_labels)
+        for root in self.root_samples:
+            samples += self._collect_imgs_sub_dir(root)
+            
+        for root in self.root_labels:
+            labels += self._collect_imgs_sub_dir(root)
 
         samples = sorted(samples)
         labels = sorted(labels)

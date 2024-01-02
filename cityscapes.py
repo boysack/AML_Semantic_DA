@@ -9,7 +9,7 @@ import torch
 
 
 class CityScapes(Dataset):
-    def __init__(self, mode):
+    def __init__(self, mode, max_iter=None):
         super(CityScapes, self).__init__()
         if mode == "train":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/train")
@@ -26,7 +26,9 @@ class CityScapes(Dataset):
         self.root_labels = root_labels
         self.transform = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
         self.samples = self._collect_samples()
-
+        if max_iter is not None:
+            self.samples = self.samples*(max_iter//len(self.samples) + 1) 
+        
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
