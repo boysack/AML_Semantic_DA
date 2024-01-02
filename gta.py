@@ -1,16 +1,16 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import Compose, Resize, ToTensor, Grayscale
+from torchvision.transforms import Compose, Resize, ToTensor, RandomApply
 import random
 import numpy as np
 import torch
+import augmentation
 # TODO
 
 
-
 class GTA(Dataset):
-    def __init__(self, mode):
+    def __init__(self, mode, t):
         super(GTA, self).__init__()
         if mode == "train":
             self.root_samples = [Path(r"./Datasets/GTA5/images/train")]
@@ -27,9 +27,11 @@ class GTA(Dataset):
         self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
                               19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
+        if t is not None:
+            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), RandomApply([augmentation.aug_transformation[t]], p = 0.5), ToTensor()])
+        else:
+            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
         
-        
-        self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
         self.transform2 = Compose([Resize((512, 1024), interpolation=Image.NEAREST)])
         
         self.samples = []

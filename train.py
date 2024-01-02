@@ -208,7 +208,10 @@ def parse_args():
                        type=str,
                        default='crossentropy',
                        help='loss function')
-
+    parse.add_argument('--data_augmentation',
+                       type=str,
+                       default=None,
+                       help='augmentation techniques to apply')
 
     return parse.parse_args()
 
@@ -221,7 +224,7 @@ def main():
 
     mode = args.mode
 
-    train_dataset = GTA(mode)
+    train_dataset = GTA(mode, t=args.data_augmentation)
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=False,
