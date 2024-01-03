@@ -16,7 +16,6 @@ from tqdm import tqdm
 import os
 from gta import GTA
 
-
 logger = logging.getLogger()
 
 
