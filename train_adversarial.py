@@ -61,7 +61,7 @@ def val(args, model, dataloader):
         return precision, miou
 
 
-def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, dataloader_target, dataloader_val):
+def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, optimizer_D2, optimizer_D3, dataloader_train, dataloader_target, dataloader_val):
     scaler = amp.GradScaler()
 
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
@@ -75,10 +75,14 @@ def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, datalo
     step = 0
     for epoch in range(args.num_epochs):
         lr = poly_lr_scheduler(optimizer, args.learning_rate, iter=epoch, max_iter=args.num_epochs)
-        lr_D = poly_lr_scheduler(optimizer_D, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
+        lr_D1 = poly_lr_scheduler(optimizer_D1, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
+        lr_D2 = poly_lr_scheduler(optimizer_D2, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
+        lr_D3 = poly_lr_scheduler(optimizer_D3, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
 
         model.train()
-        model_D.train()
+        model_D1.train()
+        model_D2.train()
+        model_D3.train()
 
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
@@ -91,15 +95,21 @@ def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, datalo
             data_t = data_t.cuda()
 
             optimizer.zero_grad()
-            optimizer_D.zero_grad()
+            optimizer_D1.zero_grad()
+            optimizer_D2.zero_grad()
+            optimizer_D3.zero_grad()
 
             # train G
-            for param in model_D.parameters():
+            for param in model_D1.parameters():
+                param.requires_grad = False
+            for param in model_D2.parameters():
+                param.requires_grad = False
+            for param in model_D3.parameters():
                 param.requires_grad = False
 
             with amp.autocast():
                 output, out16, out32 = model(data)
-                output_t, _, _= model(data_t)
+                output_t, out16_t, out32_t= model(data_t)
 
                 loss1 = loss_func(output, label.squeeze(1))
                 loss2 = loss_func(out16, label.squeeze(1))
@@ -109,36 +119,66 @@ def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, datalo
             scaler.scale(loss).backward()
 
             with amp.autocast():
-                D_out= model_D(F.softmax(output_t, dim=1))
-                loss_d_t= bce_loss(D_out, torch.FloatTensor(D_out.data.size()).fill_(source_label).cuda())
-                loss_d_t = args.lambda_d * loss_d_t
+                D_out1= model_D1(F.softmax(output_t, dim=1))
+                D_out2= model_D2(F.softmax(out16_t, dim=1))
+                D_out3= model_D3(F.softmax(out32_t, dim=1))
+
+                loss_d_t1= bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_label).cuda())
+                loss_d_t2= bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
+                loss_d_t3= bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
+
+                loss_d_t = args.lambda_d1 * loss_d_t1 + args.lambda_d2 * loss_d_t2 + args.lambda_d3 * loss_d_t3
 
             scaler.scale(loss_d_t).backward()
 
             #train D
-            for param in model_D.parameters():
+            for param in model_D1.parameters():
+                param.requires_grad = True
+            for param in model_D2.parameters():
+                param.requires_grad = True
+            for param in model_D3.parameters():
                 param.requires_grad = True
             
             output = output.detach()
+            out16 = out16.detach()
+            out32 = out32.detach()
 
             with amp.autocast():
-                D_out = model_D(F.softmax(output, dim=1))
+                D_out1 = model_D1(F.softmax(output, dim=1))
+                D_out2 = model_D2(F.softmax(out16, dim=1))
+                D_out3 = model_D3(F.softmax(out32, dim=1))
 
-                loss_d_s = bce_loss(D_out, torch.FloatTensor(D_out.data.size()).fill_(source_label).cuda())
+                loss_d_s1 = bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_label).cuda())
+                loss_d_s2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
+                loss_d_s3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
+                
 
-            scaler.scale(loss_d_s).backward()
+            scaler.scale(loss_d_s1).backward()
+            scaler.scale(loss_d_s2).backward()
+            scaler.scale(loss_d_s3).backward()
 
             output_t = output_t.detach()
+            out16_t = out16_t.detach()
+            out32_t = out32_t.detach()
 
             with amp.autocast():
-                D_out = model_D(F.softmax(output_t, dim=1))
+                D_out1 = model_D1(F.softmax(output_t, dim=1))
+                D_out2 = model_D2(F.softmax(out16_t, dim=1))
+                D_out3 = model_D3(F.softmax(out32_t, dim=1))
 
-                loss_d_t = bce_loss(D_out, torch.FloatTensor(D_out.data.size()).fill_(target_label).cuda())
+                loss_d_t1 = bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(target_label).cuda())
+                loss_d_t2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(target_label).cuda())
+                loss_d_t3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(target_label).cuda())
 
-            scaler.scale(loss_d_t).backward()
+
+            scaler.scale(loss_d_t1).backward()
+            scaler.scale(loss_d_t2).backward()
+            scaler.scale(loss_d_t3).backward()
 
             scaler.step(optimizer)
-            scaler.step(optimizer_D)
+            scaler.step(optimizer_D1)
+            scaler.step(optimizer_D2)
+            scaler.step(optimizer_D3)
             scaler.update()
 
             tq.update(args.batch_size)
@@ -156,7 +196,9 @@ def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, datalo
             if not os.path.isdir(args.save_model_path):
                 os.mkdir(args.save_model_path)
             torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
-            torch.save(model_D.module.state_dict(), os.path.join(args.save_model_path, 'latest_D.pth'))
+            torch.save(model_D1.module.state_dict(), os.path.join(args.save_model_path, 'latest_D1.pth'))
+            torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'latest_D2.pth'))
+            torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'latest_D3.pth'))
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val)
@@ -165,7 +207,9 @@ def train(args, model, model_D, optimizer, optimizer_D, dataloader_train, datalo
                 import os
                 os.makedirs(args.save_model_path, exist_ok=True)
                 torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best.pth'))
-                torch.save(model_D.module.state_dict(), os.path.join(args.save_model_path, 'best_D.pth'))
+                torch.save(model_D1.module.state_dict(), os.path.join(args.save_model_path, 'best_D1.pth'))
+                torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'best_D2.pth'))
+                torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'best_D3.pth'))
 
 
 def str2bool(v):
@@ -264,10 +308,19 @@ def parse_args():
                        type=str,
                        default='crossentropy',
                        help='loss function')
-    parse.add_argument('--lambda_d',
+    parse.add_argument('--lambda_d1',
                        type=float,
                        default=0.001,
                        help='lambda for adversarial loss')
+    parse.add_argument('--lambda_d2',
+                       type=float,
+                       default=0.0002,
+                       help='lambda for adversarial loss')
+    parse.add_argument('--lambda_d3',
+                       type=float,
+                       default=0.0002,
+                       help='lambda for adversarial loss')
+    
 
 
     return parse.parse_args()
@@ -298,18 +351,22 @@ def main():
     
     val_dataset = CityScapes(mode='val')
     dataloader_val = DataLoader(val_dataset,
-                       batch_size=args.batch_size,
+                       batch_size=1,
                        shuffle=False,
                        num_workers=args.num_workers,
                        drop_last=False)
 
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_path=args.pretrain_path, use_conv_last=args.use_conv_last)
-    model_D = FCDiscriminator(num_classes=args.num_classes)
+    model_D1 = FCDiscriminator(num_classes=args.num_classes)
+    model_D2 = FCDiscriminator(num_classes=args.num_classes)
+    model_D3 = FCDiscriminator(num_classes=args.num_classes)
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
-        model_D = torch.nn.DataParallel(model_D).cuda()
+        model_D1 = torch.nn.DataParallel(model_D1).cuda()
+        model_D2 = torch.nn.DataParallel(model_D2).cuda()
+        model_D3 = torch.nn.DataParallel(model_D3).cuda()
 
     ## optimizer
     # build optimizer
@@ -323,10 +380,13 @@ def main():
         print('not supported optimizer \n')
         return None
     
-    optimizer_D = torch.optim.Adam(model_D.parameters(), lr=args.learning_rate_D, betas=(0.9, 0.99))
+    optimizer_D1 = torch.optim.Adam(model_D1.parameters(), lr=args.learning_rate_D, betas=(0.9, 0.99))
+    optimizer_D2 = torch.optim.Adam(model_D2.parameters(), lr=args.learning_rate_D, betas=(0.9, 0.99))
+    optimizer_D3 = torch.optim.Adam(model_D3.parameters(), lr=args.learning_rate_D, betas=(0.9, 0.99))
 
+    
     ## train loop
-    train(args, model, model_D,  optimizer, optimizer_D, dataloader_train, dataloader_target, dataloader_val)
+    train(args, model, model_D1, model_D2, model_D3,  optimizer, optimizer_D1, optimizer_D2, optimizer_D3, dataloader_train, dataloader_target, dataloader_val)
     # final test
     val(args, model, dataloader_val)
 
