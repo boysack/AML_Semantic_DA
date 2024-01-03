@@ -28,7 +28,7 @@ class GTA(Dataset):
                               19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
         if t is not None:
-            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), RandomApply([augmentation.aug_transformation[t]], p = 0.5), ToTensor()])
+            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), RandomApply([augmentation.aug_transformations[t]], p = 0.5), ToTensor()])
         else:
             self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
         
