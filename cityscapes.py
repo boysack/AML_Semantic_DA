@@ -3,7 +3,7 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import Compose, ToTensor, Resize
+from torchvision.transforms import Compose, ToTensor, Resize, Normalize
 import torch
 # TODO
 
@@ -24,7 +24,7 @@ class CityScapes(Dataset):
         
         self.root_samples = root_samples
         self.root_labels = root_labels
-        self.transform = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor()])
+        self.transform = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         self.samples = self._collect_samples()
         if max_iter is not None:
             self.samples = self.samples*(max_iter//len(self.samples) + 1) 
@@ -32,7 +32,7 @@ class CityScapes(Dataset):
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        img1 = Image.open(path)
+        img1 = Image.open(path).convert('RGB')
         img2 = Image.open(label)
         return self.transform(img1), 255*self.transform(img2)
 
