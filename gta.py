@@ -67,8 +67,8 @@ class GTA(Dataset):
         return self.transform1(img1), torch.tensor(label_copy.copy(), dtype=torch.long)'''
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        img1 = Image.open(path)
-        img2 = Image.open(label) 
+        img1 = Image.open(path).convert('RGB') # << added here
+        img2 = Image.open(label).convert('RGB') # << added here
         img2 = self.transform2(img2)
 
         img2 = np.asarray(img2, np.float32)
