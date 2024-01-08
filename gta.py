@@ -23,6 +23,8 @@ class GTA(Dataset):
         else:
             raise Exception()
         
+        self.mode = mode
+        
         '''self.id_to_trainid = {(128, 64, 128): 0, (244, 35, 232): 1, (70, 70, 70): 2, (102, 102, 156): 3,
                               (190, 153, 153): 4, (153, 153, 153): 5, (250, 170, 30): 6, (220, 220, 0): 7,
                               (107, 142, 35): 8, (152, 251, 152): 9, (70, 130, 180): 10, (220, 20, 60): 11,
@@ -34,12 +36,13 @@ class GTA(Dataset):
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
 
         if t is not None:
-            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), RandomApply([augmentation.aug_transformations[t]], p = 0.5), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+            self.transform1 = Compose([Resize((1280, 720), interpolation=Image.NEAREST), RandomApply([augmentation.aug_transformations[t]], p = 0.5), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         else:
-            self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+            self.transform1 = Compose([Resize((1280, 720), interpolation=Image.NEAREST), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         
-        self.transform2 = Compose([Resize((512, 1024), interpolation='nearest-exact')])
-        
+        self.transform2 = Compose([Resize((1280, 720), interpolation=Image.NEAREST)])#'nearest-exact')])
+        self.transform_val = Compose([ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+
         self.samples = []
         self.samples += self._collect_samples()
   
@@ -74,7 +77,7 @@ class GTA(Dataset):
         for k, v in self.id_to_trainid.items():
             label_copy[img2 == k] = v
 
-        return self.transform1(img1), torch.tensor(label_copy.copy(), dtype=torch.long)
+        return self.transform1(img1) if self.mode=="train" else self.transform_val(img1), torch.tensor(label_copy.copy(), dtype=torch.long)
 
 
     def __len__(self):
