@@ -8,7 +8,6 @@ import torch
 import augmentation
 # TODO
 
-
 class GTA(Dataset):
     def __init__(self, mode, t=None):
         super(GTA, self).__init__()
@@ -39,7 +38,7 @@ class GTA(Dataset):
         else:
             self.transform1 = Compose([Resize((512, 1024), interpolation=Image.NEAREST), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         
-        self.transform2 = Compose([Resize((512, 1024), interpolation=Image.NEAREST)])
+        self.transform2 = Compose([Resize((512, 1024), interpolation='nearest-exact')])
         
         self.samples = []
         self.samples += self._collect_samples()
@@ -53,7 +52,8 @@ class GTA(Dataset):
         # img2 = self.transform2(img2)
 
         img2 = np.asarray(img2, np.int32)
-        print(img2[0][0])
+        print(img2.shape)
+        print(set([tuple(img2[i][j]) for i in range(img2.shape[0]) for j in range(img2.shape[1])]))
 
         label_copy = 255 * np.ones(img2.shape, dtype=np.int32)
         for row in range(img2.shape[0]):
