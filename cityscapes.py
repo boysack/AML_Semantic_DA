@@ -6,6 +6,7 @@ from PIL import Image
 from torchvision.transforms import Compose, ToTensor, Resize, Normalize, RandomCrop
 import torchvision.transforms.functional as TF
 import torch
+import random
 # TODO
 
 
@@ -39,6 +40,9 @@ class CityScapes(Dataset):
         img2 = Image.open(label)
 
         if self.mode == "train":
+            #seed = random.random()
+            #img1 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img1)
+            #img2 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img2)
             i, j, h, w = RandomCrop.get_params(
                 img1, output_size=(512, 1024))
             img1 = TF.crop(img1, i, j, h, w)

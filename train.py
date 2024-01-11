@@ -201,7 +201,7 @@ def parse_args():
                        help='path to save model')
     parse.add_argument('--optimizer',
                        type=str,
-                       default='adam',
+                       default='sgd',
                        help='optimizer, support rmsprop, sgd, adam')
     parse.add_argument('--loss',
                        type=str,
@@ -226,7 +226,7 @@ def main():
     train_dataset = GTA(mode, t=args.data_augmentation)
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
-                    shuffle=False,
+                    shuffle=True, 
                     num_workers=args.num_workers,
                     pin_memory=False,
                     drop_last=True)
