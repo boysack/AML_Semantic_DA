@@ -3,7 +3,7 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import Compose, ToTensor, Resize, Normalize, RandomCrop
+from torchvision.transforms.v2 import Compose, ToTensor, Resize, Normalize, RandomCrop
 import torchvision.transforms.functional as TF
 import torch
 import random
