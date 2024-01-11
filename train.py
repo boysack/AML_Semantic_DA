@@ -74,7 +74,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
         for i, (data, label) in enumerate(dataloader_train):
-            torch.cuda.empty_cache()     
+            #torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()
             optimizer.zero_grad()
@@ -173,7 +173,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=32,
+                       default=8,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,

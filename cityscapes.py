@@ -40,6 +40,7 @@ class CityScapes(Dataset):
         img1 = Image.open(path).convert('RGB')
         img2 = Image.open(label)
 
+        '''
         if self.mode == "train":
             #seed = random.random()
             #img1 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img1)
@@ -52,6 +53,23 @@ class CityScapes(Dataset):
         #img2 = np.asarray(img2, np.float32)
         img2 = np.array(img2).astype(np.int64)[np.newaxis, :]
         return self.transform(img1), img2
+        '''
+        if self.mode == "train": 
+            image = img1.resize((1024, 512), Image.BICUBIC)
+            label = img2.resize((1024, 512), Image.NEAREST)
+
+        image = np.asarray(image, np.float32)
+        label = np.asarray(label, np.float32)
+
+        size = image.shape
+        transforms = Compose([
+                Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+            ])
+        image = transforms(image)
+        image = image[:, :, ::-1]
+        image = image.transpose((2, 0, 1))
+
+        return image.copy(), label.copy()
 
 
     def __len__(self):
