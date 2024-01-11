@@ -25,6 +25,11 @@ class CityScapes(Dataset):
         else:
             raise Exception()
         
+        # vvv togli
+        self.mapping = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
+                        19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
+                        26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
+
         self.mode = mode
         self.root_samples = root_samples
         self.root_labels = root_labels
@@ -37,16 +42,16 @@ class CityScapes(Dataset):
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        img1 = Image.open(path).convert('RGB')
-        img2 = Image.open(label)
+        image = Image.open(path).convert('RGB')
+        label = Image.open(label)
 
-        if self.mode == "train": 
-            image = img1.resize((1024, 512), Image.BICUBIC)
-            label = img2.resize((1024, 512), Image.NEAREST)
+        '''if self.mode == "train": 
+            image = image.resize((1024, 512), Image.BICUBIC)
+            label = label.resize((1024, 512), Image.NEAREST)
 
         # convert into numpy array
         image = np.asarray(image, np.float32)
-        label = np.asarray(label, np.float32)
+        # label = np.asarray(label, np.float32)
 
         # size = image.shape
         transforms = v2.Compose([
@@ -55,10 +60,11 @@ class CityScapes(Dataset):
         image = transforms(image)
         image = image[:, :, ::-1]
         image = image.transpose((2, 0, 1))
+        # label = np.array(label).astype(np.int32)[np.newaxis, :]
 
         return image.copy(), label.copy()
-
         '''
+        
         if self.mode == "train":
             #seed = random.random()
             #img1 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img1)
@@ -69,9 +75,9 @@ class CityScapes(Dataset):
             img2 = TF.crop(img2, i, j, h, w)
 
         #img2 = np.asarray(img2, np.float32)
-        img2 = np.array(img2).astype(np.int64)[np.newaxis, :]
+        img2 = np.array(img2).astype(np.int32)[np.newaxis, :]
         return self.transform(img1), img2
-        '''
+        
         
 
     def __len__(self):
