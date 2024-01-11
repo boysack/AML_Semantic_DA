@@ -7,6 +7,7 @@ from torchvision.transforms import Compose, ToTensor, Resize, Normalize, RandomC
 import torchvision.transforms.functional as TF
 import torch
 import random
+import numpy as np
 # TODO
 
 
@@ -48,7 +49,9 @@ class CityScapes(Dataset):
             img1 = TF.crop(img1, i, j, h, w)
             img2 = TF.crop(img2, i, j, h, w)
 
-        return self.transform(img1), 255*self.transform_label(img2)
+        #img2 = np.asarray(img2, np.float32)
+        img2 = np.array(img2).astype(np.int64)[np.newaxis, :]
+        return self.transform(img1), img2
 
 
     def __len__(self):
