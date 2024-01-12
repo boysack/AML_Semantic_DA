@@ -1,9 +1,8 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import Compose, Resize, ToTensor, RandomApply, Normalize, RandomCrop
+from torchvision.transforms import v2#Compose, Resize, ToTensor, RandomApply, Normalize, RandomCrop
 import torchvision.transforms.functional as TF
-import random
 import numpy as np
 import torch
 import augmentation
@@ -37,12 +36,12 @@ class GTA(Dataset):
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
 
         if t is not None:
-            self.transform1 = Compose([RandomApply([augmentation.aug_transformations[t]], p = 0.5), ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+            self.transform_train = v2.Compose([v2.RandomApply([augmentation.aug_transformations[t]], p = 0.5), v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         else:
-            self.transform1 = Compose([ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+            self.transform_train = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         
         # self.transform2 = Compose([Resize((1280, 720), interpolation=Image.NEAREST)])#'nearest-exact')])
-        self.transform_val = Compose([ToTensor(), Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        self.transform_val = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
 
         self.samples = []
         self.samples += self._collect_samples()
@@ -76,7 +75,7 @@ class GTA(Dataset):
             #seed = random.random()
             #img1 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img1)
             #img2 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img2)
-            i, j, h, w = RandomCrop.get_params(
+            i, j, h, w = v2.RandomCrop.get_params(
                 img1, output_size=(720, 1280))
             img1 = TF.crop(img1, i, j, h, w)
             img2 = TF.crop(img2, i, j, h, w)
@@ -87,7 +86,7 @@ class GTA(Dataset):
         for k, v in self.id_to_trainid.items():
             label_copy[img2 == k] = v
 
-        return self.transform1(img1) if self.mode=="train" else self.transform_val(img1), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
+        return self.transform_train(img1) if self.mode=="train" else self.transform_val(img1), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
 
 
     def __len__(self):

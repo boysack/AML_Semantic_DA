@@ -223,7 +223,7 @@ def main():
 
     mode = args.mode
 
-    train_dataset = CityScapes(mode='train')
+    train_dataset = GTA(mode='train')
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=True, 
@@ -231,8 +231,15 @@ def main():
                     pin_memory=False,
                     drop_last=True)
 
-    val_dataset = CityScapes(mode='val')
+    val_dataset = GTA(mode='val')
     dataloader_val = DataLoader(val_dataset,
+                       batch_size=1,
+                       shuffle=False,
+                       num_workers=args.num_workers,
+                       drop_last=False)
+    
+    val_dataset_final = CityScapes(mode='val')
+    dataloader_val_final = DataLoader(val_dataset_final,
                        batch_size=1,
                        shuffle=False,
                        num_workers=args.num_workers,
@@ -261,7 +268,10 @@ def main():
     ## train loop
     train(args, model, optimizer, dataloader_train, dataloader_val)
     # final test
+    print("Final validation: GTA->GTA")
     val(args, model, dataloader_val)
+    print("Final validation: GTA->CS")
+    val(args, model, dataloader_val_final)
 
 if __name__ == "__main__":
     # os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "heuristic"

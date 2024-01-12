@@ -42,8 +42,8 @@ class CityScapes(Dataset):
 
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        image = Image.open(path).convert('RGB')
-        label = Image.open(label)
+        img1 = Image.open(path).convert('RGB')
+        img2 = Image.open(label)
 
         '''if self.mode == "train": 
             image = image.resize((1024, 512), Image.BICUBIC)
