@@ -9,5 +9,4 @@ a.py
 .DS_Store
 PaperForReview.*
 !*.tex
-
-#!*.pdf # remove to load the final pdf version 
+!*.pdf
