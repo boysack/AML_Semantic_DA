@@ -63,7 +63,7 @@ class GTA(Dataset):
         if self.t is not None and self.mode == "train":
             if random.random() > 0.5:
                 image = augmentation.aug_transformations[self.t](image)
-                label = augmentation.label_transformations[self.t](label)
+                label_copy = augmentation.label_transformations[self.t](label_copy)
 
         return self.transform(image), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
 
