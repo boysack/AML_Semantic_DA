@@ -6,3 +6,7 @@ lib
 share
 pyvenv.cfg
 a.py
+.DS_Store
+PaperForReview.*
+!*.tex
+!*.pdf

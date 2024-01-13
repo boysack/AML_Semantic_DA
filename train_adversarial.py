@@ -270,7 +270,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=2,
+                       default=8,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
@@ -278,7 +278,7 @@ def parse_args():
                         help='learning rate used for train')
     parse.add_argument('--learning_rate_D',
                         type=float,
-                        default=0.0001,
+                        default=0.0002,
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
@@ -357,7 +357,7 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_path=args.pretrain_path, use_conv_last=args.use_conv_last)
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
     model_D2 = FCDiscriminator(num_classes=args.num_classes)
     model_D3 = FCDiscriminator(num_classes=args.num_classes)
