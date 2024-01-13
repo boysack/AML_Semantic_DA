@@ -6,6 +6,7 @@ import torchvision.transforms.functional as TF
 import numpy as np
 import torch
 import augmentation
+import random
 # TODO
 
 class GTA(Dataset):
@@ -24,69 +25,47 @@ class GTA(Dataset):
             raise Exception()
         
         self.mode = mode
-        
-        '''self.id_to_trainid = {(128, 64, 128): 0, (244, 35, 232): 1, (70, 70, 70): 2, (102, 102, 156): 3,
-                              (190, 153, 153): 4, (153, 153, 153): 5, (250, 170, 30): 6, (220, 220, 0): 7,
-                              (107, 142, 35): 8, (152, 251, 152): 9, (70, 130, 180): 10, (220, 20, 60): 11,
-                              (255, 0, 0): 12, (0, 0, 142): 13, (0, 0, 70): 14, (0, 60, 100): 15,
-                              (0, 80, 100): 16, (0, 0, 230): 17, (119, 11, 32): 18, (0, 0, 0): 255}'''
-        
+        self.t = t
         self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
                               19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
 
-        if t is not None:
-            self.transform_train = v2.Compose([v2.RandomApply([augmentation.aug_transformations[t]], p = 0.5), v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
-        else:
-            self.transform_train = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        #if t is not None:
+        #    self.transform_train = v2.Compose([v2.RandomApply([augmentation.aug_transformations[t]], p = 0.5), v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        #else:
+        #self.transform_train = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         
         # self.transform2 = Compose([Resize((1280, 720), interpolation=Image.NEAREST)])#'nearest-exact')])
-        self.transform_val = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        #self.transform_val = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
 
+        self.transform = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         self.samples = []
         self.samples += self._collect_samples()
   
 
-    '''def __getitem__(self, idx):
-        path, label = self.samples[idx]
-        img1 = Image.open(path).convert('RGB')
-        img2 = Image.open(label).convert('RGB')
-        print(img2)
-        # img2 = self.transform2(img2)
-
-        img2 = np.asarray(img2, np.int32)
-        print(img2.shape)
-        print(set([tuple(img2[i][j]) for i in range(img2.shape[0]) for j in range(img2.shape[1])]))
-
-        label_copy = 255 * np.ones(img2.shape, dtype=np.int32)
-        for row in range(img2.shape[0]):
-            for col in range(img2.shape[1]):
-                label_copy[row][col] = self.id_to_trainid[tuple(img2[row][col])]
-
-
-        return self.transform1(img1), torch.tensor(label_copy.copy(), dtype=torch.long)'''
     def __getitem__(self, idx):
         path, label = self.samples[idx]
-        img1 = Image.open(path).convert('RGB')
-        img2 = Image.open(label)
-        # img2 = self.transform2(img2)
+        image = Image.open(path).convert('RGB')
+        label = Image.open(label)
 
         if self.mode == "train":
-            #seed = random.random()
-            #img1 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img1)
-            #img2 = RandomCrop((512, 1024), seed=10, pad_if_needed=True)(img2)
             i, j, h, w = v2.RandomCrop.get_params(
-                img1, output_size=(720, 1280))
-            img1 = TF.crop(img1, i, j, h, w)
-            img2 = TF.crop(img2, i, j, h, w)
+                image, output_size=(720, 1280))
+            image = TF.crop(image, i, j, h, w)
+            label = TF.crop(label, i, j, h, w)
 
-        img2 = np.asarray(img2, np.float32)
+        label = np.asarray(label, np.float32)
 
-        label_copy = 255 * np.ones(img2.shape, dtype=np.float32)
+        label_copy = 255 * np.ones(label.shape, dtype=np.float32)
         for k, v in self.id_to_trainid.items():
-            label_copy[img2 == k] = v
+            label_copy[label == k] = v
 
-        return self.transform_train(img1) if self.mode=="train" else self.transform_val(img1), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
+        if self.t is not None and self.mode == "train":
+            if random.random() > 0.5:
+                image = augmentation.aug_transformations[self.t](image)
+                label = augmentation.label_transformations[self.t](label)
+
+        return self.transform(image), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
 
 
     def __len__(self):

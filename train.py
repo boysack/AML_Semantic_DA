@@ -223,7 +223,7 @@ def main():
 
     mode = args.mode
 
-    train_dataset = GTA(mode='train')
+    train_dataset = GTA(mode='train', t=args.data_augmentation)
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=True, 
@@ -231,19 +231,13 @@ def main():
                     pin_memory=False,
                     drop_last=True)
 
-    val_dataset = GTA(mode='val')
+    val_dataset = CityScapes(mode='val')
     dataloader_val = DataLoader(val_dataset,
                        batch_size=1,
                        shuffle=False,
                        num_workers=args.num_workers,
                        drop_last=False)
     
-    val_dataset_final = CityScapes(mode='val')
-    dataloader_val_final = DataLoader(val_dataset_final,
-                       batch_size=1,
-                       shuffle=False,
-                       num_workers=args.num_workers,
-                       drop_last=False)
 
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
@@ -268,10 +262,8 @@ def main():
     ## train loop
     train(args, model, optimizer, dataloader_train, dataloader_val)
     # final test
-    print("Final validation: GTA->GTA")
-    val(args, model, dataloader_val)
     print("Final validation: GTA->CS")
-    val(args, model, dataloader_val_final)
+    val(args, model, dataloader_val)
 
 if __name__ == "__main__":
     # os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "heuristic"
