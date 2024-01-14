@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import v2#Compose, Resize, ToTensor, RandomApply, Normalize, RandomCrop
+from torchvision.transforms import v2
 import torchvision.transforms.functional as TF
 import numpy as np
 import torch
@@ -26,19 +26,11 @@ class GTA(Dataset):
         
         self.mode = mode
         self.t = t
+        self.transform = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
                               19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
 
-        #if t is not None:
-        #    self.transform_train = v2.Compose([v2.RandomApply([augmentation.aug_transformations[t]], p = 0.5), v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
-        #else:
-        #self.transform_train = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
-        
-        # self.transform2 = Compose([Resize((1280, 720), interpolation=Image.NEAREST)])#'nearest-exact')])
-        #self.transform_val = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
-
-        self.transform = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         self.samples = []
         self.samples += self._collect_samples()
   

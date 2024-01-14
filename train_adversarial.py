@@ -334,10 +334,10 @@ def main():
 
     mode = args.mode
 
-    train_dataset = GTA('all', t="C-S-HF")
+    train_dataset = GTA('all', t='C-S-HF')
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
-                    shuffle=False,
+                    shuffle=True,
                     num_workers=args.num_workers,
                     pin_memory=False,
                     drop_last=True)
@@ -345,7 +345,7 @@ def main():
     target_dataset = CityScapes(mode, max_iter=len(train_dataset))
     dataloader_target = DataLoader(target_dataset,
                        batch_size=args.batch_size,
-                       shuffle=False,
+                       shuffle=True,
                        num_workers=args.num_workers,
                        drop_last=False)
     
