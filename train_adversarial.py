@@ -334,7 +334,7 @@ def main():
 
     mode = args.mode
 
-    train_dataset = GTA('all')
+    train_dataset = GTA('all', t="C-S-HF")
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=False,
