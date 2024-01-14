@@ -48,7 +48,7 @@ class GTA(Dataset):
         image = Image.open(path).convert('RGB')
         label = Image.open(label)
 
-        if self.mode == "train":
+        if self.mode == "train" or self.mode == "all":
             i, j, h, w = v2.RandomCrop.get_params(
                 image, output_size=(720, 1280))
             image = TF.crop(image, i, j, h, w)
@@ -60,7 +60,7 @@ class GTA(Dataset):
         for k, v in self.id_to_trainid.items():
             label_copy[label == k] = v
 
-        if self.t is not None and self.mode == "train":
+        if self.t is not None and (self.mode == "train" or self.mode == "all"):
             if random.random() > 0.5:
                 image = augmentation.aug_transformations[self.t](image)
                 label_copy = augmentation.label_transformations[self.t](label_copy)
