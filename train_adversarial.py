@@ -357,10 +357,24 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
     model_D2 = FCDiscriminator(num_classes=args.num_classes)
     model_D3 = FCDiscriminator(num_classes=args.num_classes)
+
+    if(args.pretrain_path == './STDCNet813M_73.91.tar'):
+        model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+    else:
+        model_ckpt = args.pretrain_path+'/latest.pth'
+        modelD1_ckpt = args.pretrain_path+'/latest_D1.pth'
+        modelD2_ckpt = args.pretrain_path+'/latest_D2.pth'
+        modelD3_ckpt = args.pretrain_path+'/latest_D3.pth'
+        model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+        model.load_state_dict(torch.load(model_ckpt), strict=True)
+        model_D1.load_state_dict(torch.load(modelD1_ckpt), strict=True)
+        model_D2.load_state_dict(torch.load(modelD2_ckpt), strict=True)
+        model_D3.load_state_dict(torch.load(modelD3_ckpt), strict=True)
+
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
