@@ -269,7 +269,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=2,
+                       default=8,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
@@ -301,7 +301,7 @@ def parse_args():
                        help='path to save model')
     parse.add_argument('--optimizer',
                        type=str,
-                       default='adam',
+                       default='sgd',
                        help='optimizer, support rmsprop, sgd, adam')
     parse.add_argument('--loss',
                        type=str,
