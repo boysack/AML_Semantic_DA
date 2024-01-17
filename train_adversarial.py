@@ -17,7 +17,6 @@ import torch.nn.functional as F
 import os
 from gta import GTA
 
-
 logger = logging.getLogger()
 
 
@@ -182,7 +181,7 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
             scaler.update()
 
             tq.update(args.batch_size)
-            tq.set_postfix(loss='%.6f' % loss)
+            tq.set_postfix(loss='%.4f' % loss, loss_d_t='%.4f' %(loss_d_t/args.lambda_d1), loss_d_s1="%.4f" %loss_d_s1, loss_d_t1="%.4f" %loss_d_t1)
             step += 1
 
             loss_record.append(loss.item())
@@ -190,7 +189,7 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
         tq.close()
         loss_train_mean = np.mean(loss_record)
 
-        print('loss for train : %f' % (loss_train_mean))
+        print('epoch: %d - loss for train : %f - loss_d_t: %f - loss_d_s1: %f - loss_d_t1: %f' % (epoch, loss_train_mean, loss_d_t/args.lambda_d1, loss_d_s1, loss_d_t1))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
             import os
             if not os.path.isdir(args.save_model_path):
@@ -270,7 +269,7 @@ def parse_args():
                        help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
-                       default=8,
+                       default=2,
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
