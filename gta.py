@@ -7,10 +7,11 @@ import numpy as np
 import torch
 import augmentation
 import random
+import torchvision
 # TODO
 
 class GTA(Dataset):
-    def __init__(self, mode, t=None):
+    def __init__(self, mode, t=None, type=None):
         super(GTA, self).__init__()
         if mode == "train":
             self.root_samples = [Path(r"./Datasets/GTA5/images/train")]
@@ -24,6 +25,7 @@ class GTA(Dataset):
         else:
             raise Exception()
         
+        self.type=type
         self.mode = mode
         self.t = t
         self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
@@ -39,18 +41,26 @@ class GTA(Dataset):
         #self.transform_val = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
 
         self.transform = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        self.tensor_transform = v2.Compose([v2.ToTensor()])
         self.samples = []
         self.samples += self._collect_samples()
   
 
     def __getitem__(self, idx):
+        torchvision.disable_beta_transforms_warning()
         path, label = self.samples[idx]
         image = Image.open(path).convert('RGB')
         label = Image.open(label)
 
-        if self.mode == "train":
+        if self.mode == "train" or (self.mode == "all" and self.type is None):
             i, j, h, w = v2.RandomCrop.get_params(
                 image, output_size=(720, 1280))
+            image = TF.crop(image, i, j, h, w)
+            label = TF.crop(label, i, j, h, w)
+
+        if self.type == "FDA":
+            i, j, h, w = v2.RandomCrop.get_params(
+                image, output_size=(512, 1024))
             image = TF.crop(image, i, j, h, w)
             label = TF.crop(label, i, j, h, w)
 
@@ -64,8 +74,13 @@ class GTA(Dataset):
             if random.random() > 0.5:
                 image = augmentation.aug_transformations[self.t](image)
                 label = augmentation.label_transformations[self.t](label)
+        
+        if self.mode != "all":
+            image= self.transform(image)
+        else:
+            image = self.tensor_transform(image)
 
-        return self.transform(image), torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
+        return image, torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
 
 
     def __len__(self):
