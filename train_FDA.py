@@ -11,7 +11,7 @@ from tensorboardX import SummaryWriter
 import torch.cuda.amp as amp
 from utils import poly_lr_scheduler
 from utils import reverse_one_hot, compute_global_accuracy, fast_hist, per_class_iu
-from utils import FDA_source_to_target_np, ent_loss
+from utils import FDA_source_to_target_np
 from tqdm import tqdm
 from torchvision.transforms import v2
 from gta import GTA
