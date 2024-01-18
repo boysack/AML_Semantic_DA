@@ -64,8 +64,8 @@ class GTA(Dataset):
                 image, output_size=(512, 1024))
             image = TF.crop(image, i, j, h, w)
             label = TF.crop(label, i, j, h, w)'''
-        image = v2.Compose([v2.Resize((1024, 512))])(image)
-        label = v2.Compose([v2.Resize((1024, 512))])(label)
+            image = v2.Compose([v2.Resize((1024, 512))])(image)
+            label = v2.Compose([v2.Resize((1024, 512))])(label)
 
 
         label = np.asarray(label, np.float32)
