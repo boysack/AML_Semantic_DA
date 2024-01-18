@@ -64,7 +64,7 @@ class GTA(Dataset):
                 image, output_size=(512, 1024))
             image = TF.crop(image, i, j, h, w)
             label = TF.crop(label, i, j, h, w)
-
+            
         label = np.asarray(label, np.float32)
 
         label_copy = 255 * np.ones(label.shape, dtype=np.float32)
