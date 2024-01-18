@@ -301,7 +301,7 @@ def main():
                     pin_memory=False,
                     drop_last=True)
 
-    target_dataset = CityScapes(mode, max_iter=len(train_dataset), norm=False)
+    target_dataset = CityScapes(mode, max_iter=len(train_dataset), norm=False, fda=True)
     
     dataloader_target = DataLoader(target_dataset,
                        batch_size=args.batch_size,
