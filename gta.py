@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
-from torchvision.transforms import v2#Compose, Resize, ToTensor, RandomApply, Normalize, RandomCrop
+from torchvision.transforms import v2
 import torchvision.transforms.functional as TF
 import numpy as np
 import torch
@@ -28,6 +28,7 @@ class GTA(Dataset):
         self.type=type
         self.mode = mode
         self.t = t
+        self.transform = v2.Compose([v2.ToTensor(), v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         self.id_to_trainid = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
                               19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                               26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
@@ -70,12 +71,12 @@ class GTA(Dataset):
         for k, v in self.id_to_trainid.items():
             label_copy[label == k] = v
 
-        if self.t is not None and self.mode == "train":
+        if self.t is not None and (self.mode == "train" or self.mode == "all"):
             if random.random() > 0.5:
                 image = augmentation.aug_transformations[self.t](image)
                 label = augmentation.label_transformations[self.t](label)
         
-        if self.mode != "all":
+        if self.type != "FDA":
             image= self.transform(image)
         else:
             image = self.tensor_transform(image)

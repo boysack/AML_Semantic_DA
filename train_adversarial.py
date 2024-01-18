@@ -17,7 +17,6 @@ import torch.nn.functional as F
 import os
 from gta import GTA
 
-
 logger = logging.getLogger()
 
 
@@ -76,40 +75,40 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
     for epoch in range(args.num_epochs):
         lr = poly_lr_scheduler(optimizer, args.learning_rate, iter=epoch, max_iter=args.num_epochs)
         lr_D1 = poly_lr_scheduler(optimizer_D1, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
-        lr_D2 = poly_lr_scheduler(optimizer_D2, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
-        lr_D3 = poly_lr_scheduler(optimizer_D3, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
+        # lr_D2 = poly_lr_scheduler(optimizer_D2, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
+        # lr_D3 = poly_lr_scheduler(optimizer_D3, args.learning_rate_D, iter=epoch, max_iter=args.num_epochs)
 
         model.train()
         model_D1.train()
-        model_D2.train()
-        model_D3.train()
+        #model_D2.train()
+        #model_D3.train()
 
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
 
         for (data, label), (data_t, _) in zip(dataloader_train, dataloader_target):
-            torch.cuda.empty_cache()     
+            # torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()
             data_t = data_t.cuda()
 
             optimizer.zero_grad()
             optimizer_D1.zero_grad()
-            optimizer_D2.zero_grad()
-            optimizer_D3.zero_grad()
+            #optimizer_D2.zero_grad()
+            #optimizer_D3.zero_grad()
 
             # train G
             for param in model_D1.parameters():
                 param.requires_grad = False
-            for param in model_D2.parameters():
-                param.requires_grad = False
-            for param in model_D3.parameters():
-                param.requires_grad = False
+            #for param in model_D2.parameters():
+            #    param.requires_grad = False
+            #for param in model_D3.parameters():
+            #    param.requires_grad = False
 
             with amp.autocast():
                 output, out16, out32 = model(data)
-                output_t, out16_t, out32_t= model(data_t)
+                output_t, out16_t, out32_t= model(data_t) # ignoring 16_t and 32_t (just one model for D)
 
                 loss1 = loss_func(output, label.squeeze(1))
                 loss2 = loss_func(out16, label.squeeze(1))
@@ -120,24 +119,24 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
 
             with amp.autocast():
                 D_out1= model_D1(F.softmax(output_t, dim=1))
-                D_out2= model_D2(F.softmax(out16_t, dim=1))
-                D_out3= model_D3(F.softmax(out32_t, dim=1))
+                #D_out2= model_D2(F.softmax(out16_t, dim=1))
+                #D_out3= model_D3(F.softmax(out32_t, dim=1))
 
                 loss_d_t1= bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_label).cuda())
-                loss_d_t2= bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
-                loss_d_t3= bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
+                #loss_d_t2= bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
+                #loss_d_t3= bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
 
-                loss_d_t = args.lambda_d1 * loss_d_t1 + args.lambda_d2 * loss_d_t2 + args.lambda_d3 * loss_d_t3
+                loss_d_t = args.lambda_d1 * loss_d_t1# + args.lambda_d2 * loss_d_t2 + args.lambda_d3 * loss_d_t3
 
             scaler.scale(loss_d_t).backward()
 
             #train D
             for param in model_D1.parameters():
                 param.requires_grad = True
-            for param in model_D2.parameters():
-                param.requires_grad = True
-            for param in model_D3.parameters():
-                param.requires_grad = True
+            #for param in model_D2.parameters():
+            #    param.requires_grad = True
+            #for param in model_D3.parameters():
+            #    param.requires_grad = True
             
             output = output.detach()
             out16 = out16.detach()
@@ -145,17 +144,17 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
 
             with amp.autocast():
                 D_out1 = model_D1(F.softmax(output, dim=1))
-                D_out2 = model_D2(F.softmax(out16, dim=1))
-                D_out3 = model_D3(F.softmax(out32, dim=1))
+                #D_out2 = model_D2(F.softmax(out16, dim=1))
+                #D_out3 = model_D3(F.softmax(out32, dim=1))
 
                 loss_d_s1 = bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_label).cuda())
-                loss_d_s2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
-                loss_d_s3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
+                #loss_d_s2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_label).cuda())
+                #loss_d_s3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(source_label).cuda())
                 
 
             scaler.scale(loss_d_s1).backward()
-            scaler.scale(loss_d_s2).backward()
-            scaler.scale(loss_d_s3).backward()
+            #scaler.scale(loss_d_s2).backward()
+            #scaler.scale(loss_d_s3).backward()
 
             output_t = output_t.detach()
             out16_t = out16_t.detach()
@@ -163,26 +162,26 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
 
             with amp.autocast():
                 D_out1 = model_D1(F.softmax(output_t, dim=1))
-                D_out2 = model_D2(F.softmax(out16_t, dim=1))
-                D_out3 = model_D3(F.softmax(out32_t, dim=1))
+                #D_out2 = model_D2(F.softmax(out16_t, dim=1))
+                #D_out3 = model_D3(F.softmax(out32_t, dim=1))
 
                 loss_d_t1 = bce_loss(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(target_label).cuda())
-                loss_d_t2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(target_label).cuda())
-                loss_d_t3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(target_label).cuda())
+                #loss_d_t2 = bce_loss(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(target_label).cuda())
+                #loss_d_t3 = bce_loss(D_out3, torch.FloatTensor(D_out3.data.size()).fill_(target_label).cuda())
 
 
             scaler.scale(loss_d_t1).backward()
-            scaler.scale(loss_d_t2).backward()
-            scaler.scale(loss_d_t3).backward()
+            #scaler.scale(loss_d_t2).backward()
+            #scaler.scale(loss_d_t3).backward()
 
             scaler.step(optimizer)
             scaler.step(optimizer_D1)
-            scaler.step(optimizer_D2)
-            scaler.step(optimizer_D3)
+            #scaler.step(optimizer_D2)
+            #scaler.step(optimizer_D3)
             scaler.update()
 
             tq.update(args.batch_size)
-            tq.set_postfix(loss='%.6f' % loss)
+            tq.set_postfix(loss='%.4f' % loss, loss_d_t='%.4f' %(loss_d_t/args.lambda_d1), loss_d_s1="%.4f" %loss_d_s1, loss_d_t1="%.4f" %loss_d_t1)
             step += 1
 
             loss_record.append(loss.item())
@@ -190,15 +189,15 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
         tq.close()
         loss_train_mean = np.mean(loss_record)
 
-        print('loss for train : %f' % (loss_train_mean))
+        print('epoch: %d - loss for train : %f - loss_d_t: %f - loss_d_s1: %f - loss_d_t1: %f' % (epoch, loss_train_mean, loss_d_t/args.lambda_d1, loss_d_s1, loss_d_t1))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
             import os
             if not os.path.isdir(args.save_model_path):
                 os.mkdir(args.save_model_path)
             torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
             torch.save(model_D1.module.state_dict(), os.path.join(args.save_model_path, 'latest_D1.pth'))
-            torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'latest_D2.pth'))
-            torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'latest_D3.pth'))
+            #torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'latest_D2.pth'))
+            #torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'latest_D3.pth'))
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val)
@@ -208,8 +207,8 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
                 os.makedirs(args.save_model_path, exist_ok=True)
                 torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best.pth'))
                 torch.save(model_D1.module.state_dict(), os.path.join(args.save_model_path, 'best_D1.pth'))
-                torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'best_D2.pth'))
-                torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'best_D3.pth'))
+                #torch.save(model_D2.module.state_dict(), os.path.join(args.save_model_path, 'best_D2.pth'))
+                #torch.save(model_D3.module.state_dict(), os.path.join(args.save_model_path, 'best_D3.pth'))
 
 
 def str2bool(v):
@@ -278,7 +277,7 @@ def parse_args():
                         help='learning rate used for train')
     parse.add_argument('--learning_rate_D',
                         type=float,
-                        default=0.0002,
+                        default=0.0001, #default=0.0002,
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
@@ -302,7 +301,7 @@ def parse_args():
                        help='path to save model')
     parse.add_argument('--optimizer',
                        type=str,
-                       default='adam',
+                       default='sgd',
                        help='optimizer, support rmsprop, sgd, adam')
     parse.add_argument('--loss',
                        type=str,
@@ -334,10 +333,10 @@ def main():
 
     mode = args.mode
 
-    train_dataset = GTA('all')
+    train_dataset = GTA('all', t='C-S-HF')
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
-                    shuffle=False,
+                    shuffle=True,
                     num_workers=args.num_workers,
                     pin_memory=False,
                     drop_last=True)
@@ -345,7 +344,7 @@ def main():
     target_dataset = CityScapes(mode, max_iter=len(train_dataset))
     dataloader_target = DataLoader(target_dataset,
                        batch_size=args.batch_size,
-                       shuffle=False,
+                       shuffle=True,
                        num_workers=args.num_workers,
                        drop_last=False)
     
@@ -357,10 +356,24 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
     model_D2 = FCDiscriminator(num_classes=args.num_classes)
     model_D3 = FCDiscriminator(num_classes=args.num_classes)
+
+    if(args.pretrain_path == './STDCNet813M_73.91.tar'):
+        model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+    else:
+        model_ckpt = args.pretrain_path+'/latest.pth'
+        modelD1_ckpt = args.pretrain_path+'/latest_D1.pth'
+        #modelD2_ckpt = args.pretrain_path+'/latest_D2.pth'
+        #modelD3_ckpt = args.pretrain_path+'/latest_D3.pth'
+        model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+        model.load_state_dict(torch.load(model_ckpt), strict=True)
+        model_D1.load_state_dict(torch.load(modelD1_ckpt), strict=True)
+        #model_D2.load_state_dict(torch.load(modelD2_ckpt), strict=True)
+        #model_D3.load_state_dict(torch.load(modelD3_ckpt), strict=True)
+
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
