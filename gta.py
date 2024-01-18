@@ -60,13 +60,10 @@ class GTA(Dataset):
             label = TF.crop(label, i, j, h, w)
 
         if self.type == "FDA":
-            '''i, j, h, w = v2.RandomCrop.get_params(
+            i, j, h, w = v2.RandomCrop.get_params(
                 image, output_size=(512, 1024))
             image = TF.crop(image, i, j, h, w)
-            label = TF.crop(label, i, j, h, w)'''
-        image = v2.Compose([v2.Resize((1024, 512))])(image)
-        label = v2.Compose([v2.Resize((1024, 512))])(label)
-
+            label = TF.crop(label, i, j, h, w)
 
         label = np.asarray(label, np.float32)
 

@@ -13,7 +13,7 @@ import torchvision
 
 
 class CityScapes(Dataset):
-    def __init__(self, mode, max_iter=None, norm=True, fda=False):
+    def __init__(self, mode, max_iter=None, norm=True):
         super(CityScapes, self).__init__()
         if mode == "train":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/train")
@@ -39,7 +39,6 @@ class CityScapes(Dataset):
         self.samples = self._collect_samples()
         if max_iter is not None:
             self.samples = self.samples*(max_iter//len(self.samples) + 1) 
-        self.fda = fda
         
 
     def __getitem__(self, idx):
@@ -48,15 +47,11 @@ class CityScapes(Dataset):
         img1 = Image.open(path).convert('RGB')
         img2 = Image.open(label)
         
-        if self.mode == "train" and not self.fda:
+        if self.mode == "train":
             i, j, h, w = v2.RandomCrop.get_params(
                 img1, output_size=(512, 1024))
             img1 = TF.crop(img1, i, j, h, w)
             img2 = TF.crop(img2, i, j, h, w)
-
-        if self.fda:
-            img1 = v2.Compose([v2.Resize((1024, 512))])(img1)
-            img2 = v2.Compose([v2.Resize((1024, 512))])(img2)
 
         img2 = np.array(img2).astype(np.int32)[np.newaxis, :]
 
