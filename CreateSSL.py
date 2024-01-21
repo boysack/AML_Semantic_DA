@@ -71,7 +71,7 @@ def main():
     image_name = []
 
     with torch.no_grad():
-        for image, _, name in tqdm(targetloader):
+        for index, (image, _, name) in enumerate(tqdm(targetloader)):
             image = image.cuda()
 
             # forward
