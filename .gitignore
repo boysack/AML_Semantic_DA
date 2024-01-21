@@ -10,3 +10,4 @@ a.py
 PaperForReview.*
 !*.tex
 !*.pdf
+try.py
