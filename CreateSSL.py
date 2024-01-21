@@ -85,7 +85,7 @@ def main():
             a, b = 0.5, 0.5
             output = a*output1 + b*output2 
 
-            output = output.squeeze(0).numpy()
+            output = output.squeeze(0).cpu().numpy()
             output = output.transpose(1,2,0)
        
             label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
