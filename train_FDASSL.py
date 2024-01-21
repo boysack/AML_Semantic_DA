@@ -86,7 +86,7 @@ def train(args, model,model_D1, optimizer, optimizer_D1, dataloader_train, datal
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
-        for (data, label, _),(dataSSL, labelSSL, _), (data_t, _, _) in zip(dataloader_train,dataloader_targetSSL, dataloader_target):
+        for (data, label, _),(dataSSL, labelSSL, _), (data_t, _, _) in zip(dataloader_train, dataloader_targetSSL, dataloader_target):
             # torch.cuda.empty_cache() 
             for i in range(data.shape[0]): 
                 data[i] = torch.tensor(FDA_source_to_target_np( data[i].numpy(), data_t[i].numpy(), L=args.LB )) 
@@ -118,11 +118,9 @@ def train(args, model,model_D1, optimizer, optimizer_D1, dataloader_train, datal
             scaler.scale(loss).backward()
 
             with amp.autocast():
-                outputSSL, outSSL16, outSSL32 = model(dataSSL)
+                outputSSL, _, _ = model(dataSSL)
                 lossSSL1 = loss_func(outputSSL, labelSSL.squeeze(1))
-                lossSSL2 = loss_func(outSSL16, labelSSL.squeeze(1))
-                lossSSL3 = loss_func(outSSL32, labelSSL.squeeze(1))
-                lossSSL = lossSSL1 + lossSSL2 + lossSSL3 
+                lossSSL = lossSSL1  
 
             scaler.scale(lossSSL).backward()
 
@@ -219,7 +217,7 @@ def parse_args():
                        default=False,
     )
     parse.add_argument('--num_epochs',
-                       type=int, default=50,
+                       type=int, default=25,
                        help='Number of epochs to train for')
     parse.add_argument('--epoch_start_i',
                        type=int,
@@ -247,11 +245,11 @@ def parse_args():
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
-                        default=0.01,
+                        default=0.005,
                         help='learning rate used for train')
     parse.add_argument('--learning_rate_D',
                         type=float,
-                        default=0.0001,
+                        default=0.00005,
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
@@ -374,7 +372,7 @@ def main():
     optimizer_D1 = torch.optim.Adam(model_D1.parameters(), lr=args.learning_rate_D, betas=(0.9, 0.99))
     
     ## train loop
-    train(args, model, model_D1, optimizer, optimizer_D1, dataloader_train, dataloader_target,dataloader_targetSSL, dataloader_val)
+    train(args, model, model_D1, optimizer, optimizer_D1, dataloader_train, dataloader_target, dataloader_targetSSL, dataloader_val)
     # final test
     val(args, model, dataloader_val)
    
