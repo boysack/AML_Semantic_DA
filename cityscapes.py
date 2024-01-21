@@ -13,7 +13,7 @@ import torchvision
 
 
 class CityScapes(Dataset):
-    def __init__(self, mode, max_iter=None, norm=True):
+    def __init__(self, mode, max_iter=None, norm=True, crop=True):
         super(CityScapes, self).__init__()
         if mode == "train":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/train")
@@ -31,6 +31,7 @@ class CityScapes(Dataset):
                         19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
                         26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
         self.norm=norm
+        self.crop=crop
         self.mode = mode
         self.root_samples = root_samples
         self.root_labels = root_labels
@@ -48,7 +49,7 @@ class CityScapes(Dataset):
         img2 = Image.open(label)
         img_name = path.stem
         
-        if self.mode == "train":
+        if self.mode == "train" and self.crop:
             i, j, h, w = v2.RandomCrop.get_params(
                 img1, output_size=(512, 1024))
             img1 = TF.crop(img1, i, j, h, w)
