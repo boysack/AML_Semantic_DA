@@ -82,7 +82,7 @@ def main():
             output2 = nn.functional.softmax(output2, dim=1)
 
 
-            a, b = 0.5
+            a, b = 0.5, 0.5
             output = a*output1 + b*output2 
 
             output = output.squeeze(0)
