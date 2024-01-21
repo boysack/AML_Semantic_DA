@@ -6,6 +6,7 @@ import argparse
 from cityscapes import CityScapes
 from torch.utils.data import DataLoader
 from model.model_stages import BiSeNet
+from tqdm import tqdm
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -30,6 +31,11 @@ def parse_args():
                        dest='use_conv_last',
                        type=str2bool,
                        default=False,
+    )
+    parse.add_argument('--backbone',
+                       dest='backbone',
+                       type=str,
+                       default='CatmodelSmall',
     )
 
     return parse.parse_args()
@@ -66,7 +72,7 @@ def main():
     with torch.no_grad():
         precision_record = []
         hist = np.zeros((args.num_classes, args.num_classes))
-        for image, label, _ in targetloader:
+        for image, label, _ in tqdm(targetloader):
             # forward
             output1, _, _ = model1(image)
             output1 = nn.functional.softmax(output1, dim=1)
