@@ -114,7 +114,7 @@ def main():
             label[   (prob<thres[i]) * (label==i)   ] = 255  
         output = np.asarray(label, dtype=np.uint8)
         output = Image.fromarray(output)
-        output.save(f"") 
+        output.save(f"./Datasets/Cityscapes/Cityspaces/pseudolabels/{name}.png") 
     
     
 if __name__ == '__main__':
