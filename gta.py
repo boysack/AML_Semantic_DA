@@ -52,6 +52,7 @@ class GTA(Dataset):
         path, label = self.samples[idx]
         image = Image.open(path).convert('RGB')
         label = Image.open(label)
+        img_name = path.stem
 
         if self.mode == "train" or (self.mode == "all" and self.type is None):
             i, j, h, w = v2.RandomCrop.get_params(
@@ -81,7 +82,7 @@ class GTA(Dataset):
         else:
             image = self.tensor_transform(image)
 
-        return image, torch.tensor(label_copy.copy(), dtype=torch.float32)#dtype=torch.long)
+        return image, torch.tensor(label_copy.copy(), dtype=torch.float32), img_name#dtype=torch.long)
 
 
     def __len__(self):

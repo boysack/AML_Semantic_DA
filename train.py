@@ -73,7 +73,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
-        for i, (data, label) in enumerate(dataloader_train):
+        for i, (data, label, _) in enumerate(dataloader_train):
             #torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()
