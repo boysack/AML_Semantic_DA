@@ -66,13 +66,9 @@ def main():
 
     # change the mean for different dataset
 
-    predicted_label = np.zeros((len(targetloader), 1024,2048), dtype=np.float16)
-    predicted_prob = np.zeros((len(targetloader), 1024,2048), dtype=np.uint8)
-    np.save("predicted_label.npy", predicted_label)
-    np.save("predicted_prob.npy", predicted_prob)
-    predicted_label = np.load("predicted_label.npy", mmap_mode='w+')
-    predicted_prob = np.load("predicted_prob.npy", mmap_mode='w+')
-    
+    predicted_label = np.load("predicted_label.npy", mmap_mode='r+')
+    predicted_prob = np.load("predicted_prob.npy", mmap_mode='r+')
+
     image_name = []
 
     with torch.no_grad():
