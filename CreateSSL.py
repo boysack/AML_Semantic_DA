@@ -66,7 +66,7 @@ def main():
 
     # change the mean for different dataset
 
-    predicted_label = np.load("predicted_label.npy", mmap_mode='r+')
+    #predicted_label = np.load("predicted_label.npy", mmap_mode='r+')
     predicted_prob = np.load("predicted_prob.npy", mmap_mode='r+')
 
     image_name = []
