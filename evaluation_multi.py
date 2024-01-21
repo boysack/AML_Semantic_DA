@@ -5,6 +5,15 @@ from utils import reverse_one_hot, compute_global_accuracy, fast_hist, per_class
 import argparse
 from cityscapes import CityScapes
 from torch.utils.data import DataLoader
+from model.model_stages import BiSeNet
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
 def parse_args():
     parse = argparse.ArgumentParser()
@@ -17,6 +26,11 @@ def parse_args():
                        type=int,
                        default=2,
                        help='num of workers')
+    parse.add_argument('--use_conv_last',
+                       dest='use_conv_last',
+                       type=str2bool,
+                       default=False,
+    )
 
     return parse.parse_args()
 
@@ -29,6 +43,16 @@ def main():
     model2 = CreateModel(args)
     model2.eval()
     model2.cuda() """
+
+    model1 = BiSeNet(backbone=args.backbone, n_classes=args.num_classes, use_conv_last=args.use_conv_last)
+    model1.load_state_dict(torch.load('./results-trainFDA-0.01/best_FDA_0.01.pth'))
+    model2 = BiSeNet(backbone=args.backbone, n_classes=args.num_classes, use_conv_last=args.use_conv_last)
+    model2.load_state_dict(torch.load('./results-trainFDA-0.05-fromepoch16/best_FDA_0.05.pth'))
+
+    model1.eval()
+    model1.cuda()
+    model2.eval()
+    model2.cuda()
 
     val_dataset = CityScapes(mode='val')
     targetloader = DataLoader(val_dataset,
