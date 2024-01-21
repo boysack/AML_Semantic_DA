@@ -26,7 +26,7 @@ def val(args, model, dataloader):
         model.eval()
         precision_record = []
         hist = np.zeros((args.num_classes, args.num_classes))
-        for i, (data, label) in enumerate(dataloader):
+        for i, (data, label, _) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
             data = data.cuda()
             label = label.long().cuda()
