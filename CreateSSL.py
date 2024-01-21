@@ -98,19 +98,19 @@ def main():
             image_name.append(name[0])
         
     thres = []
-    for i in range(19):
+    for i in tqdm(range(19)):
         x = predicted_prob[predicted_label==i]
         if len(x) == 0:
             thres.append(0)
             continue        
         x = np.sort(x)
-        thres.append(x[np.int(np.round(len(x)*0.66))])
+        thres.append(x[round(len(x)*0.66)])
     print( thres )
     thres = np.array(thres)
     thres[thres>0.9]=0.9
     print( thres )
 
-    for index in range(len(targetloader)):
+    for index in tqdm(range(len(targetloader))):
         name = image_name[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
