@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- encoding: utf-8 -*-
 from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
@@ -11,25 +9,16 @@ import numpy as np
 import torchvision
 # TODO
 
-
-class CityScapes(Dataset):
-    def __init__(self, mode, max_iter=None, norm=True, crop=True):
-        super(CityScapes, self).__init__()
+class CityScapesSSL(Dataset):
+    def __init__(self, mode="train", max_iter=None, norm=True, crop=True):
+        super(CityScapesSSL, self).__init__()
         if mode == "train":
             root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/train")
-            root_labels = Path(r"./Datasets/Cityscapes/Cityspaces/gtFine/train")
+            root_labels = Path(r"./Datasets/Cityscapes/Cityspaces/pseudolabels")
             self.subdirs = ["hanover", "jena", "krefeld", "monchengladbach", "strasbourg", "stuttgart", "tubingen", "ulm", "weimar", "zurich"]
-        elif mode == "val":
-            root_samples = Path(r"./Datasets/Cityscapes/Cityspaces/images/val")
-            root_labels = Path(r"./Datasets/Cityscapes/Cityspaces/gtFine/val")
-            self.subdirs = ["frankfurt", "lindau", "munster"]
         else:
             raise Exception()
         
-        # vvv togli
-        self.mapping = {7: 0, 8: 1, 11: 2, 12: 3, 13: 4, 17: 5,
-                        19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12,
-                        26: 13, 27: 14, 28: 15, 31: 16, 32: 17, 33: 18}
         self.norm=norm
         self.crop=crop
         self.mode = mode
@@ -76,7 +65,8 @@ class CityScapes(Dataset):
 
         for p in self.subdirs:
             samples += self._collect_imgs_sub_dir((self.root_samples / p), False)
-            labels += self._collect_imgs_sub_dir((self.root_labels / p), True)
+            
+        labels += self._collect_imgs_sub_dir(self.root_labels, True)
 
         samples = sorted(samples)
         labels = sorted(labels)
@@ -88,7 +78,4 @@ class CityScapes(Dataset):
     def _collect_imgs_sub_dir(sub_dir: Path, val: bool):
         if not sub_dir.exists():
             raise ValueError(f"Data root must contain sub dir '{sub_dir.name}'")
-        if val == False:
-            return list(sub_dir.glob("*.png"))
-        else:
-            return list(sub_dir.glob("*Ids.png"))
+        return list(sub_dir.glob("*.png"))
