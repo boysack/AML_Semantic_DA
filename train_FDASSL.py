@@ -118,9 +118,11 @@ def train(args, model,model_D1, optimizer, optimizer_D1, dataloader_train, datal
             scaler.scale(loss).backward()
 
             with amp.autocast():
-                outputSSL, _, _ = model(dataSSL)
+                outputSSL, outputSSL16, outputSSL32= model(dataSSL)
                 lossSSL1 = loss_func(outputSSL, labelSSL.squeeze(1))
-                lossSSL = lossSSL1  
+                lossSSL2 = loss_func(outputSSL16, labelSSL.squeeze(1))
+                lossSSL3 = loss_func(outputSSL32, labelSSL.squeeze(1))
+                lossSSL = lossSSL1  + lossSSL2 + lossSSL3
 
             scaler.scale(lossSSL).backward()
 
@@ -217,7 +219,7 @@ def parse_args():
                        default=False,
     )
     parse.add_argument('--num_epochs',
-                       type=int, default=25,
+                       type=int, default=35,
                        help='Number of epochs to train for')
     parse.add_argument('--epoch_start_i',
                        type=int,
@@ -245,11 +247,11 @@ def parse_args():
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
-                        default=0.005,
+                        default=0.01,
                         help='learning rate used for train')
     parse.add_argument('--learning_rate_D',
                         type=float,
-                        default=0.00005,
+                        default=0.0001,
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
@@ -347,10 +349,10 @@ def main():
 
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
-    model.load_state_dict(torch.load(args.path_model))
+    #model.load_state_dict(torch.load(args.path_model))
 
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
-    model_D1.load_state_dict(torch.load(args.path_discriminator))
+    #model_D1.load_state_dict(torch.load(args.path_discriminator))
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
