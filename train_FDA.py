@@ -85,7 +85,7 @@ def train(args, model,model_D1, optimizer, optimizer_D1, dataloader_train, datal
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
-        for (data, label), (data_t, _) in zip(dataloader_train, dataloader_target):
+        for (data, label, _), (data_t, _, _) in zip(dataloader_train, dataloader_target):
             # torch.cuda.empty_cache() 
             for i in range(data.shape[0]): 
                 data[i] = torch.tensor(FDA_source_to_target_np( data[i].numpy(), data_t[i].numpy(), L=args.LB )) 

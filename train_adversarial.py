@@ -87,7 +87,7 @@ def train(args, model, model_D1, model_D2, model_D3, optimizer, optimizer_D1, op
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
 
-        for (data, label), (data_t, _) in zip(dataloader_train, dataloader_target):
+        for (data, label, _), (data_t, _, _) in zip(dataloader_train, dataloader_target):
             # torch.cuda.empty_cache()     
             data = data.cuda()
             label = label.long().cuda()

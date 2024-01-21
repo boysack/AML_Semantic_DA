@@ -46,6 +46,7 @@ class CityScapes(Dataset):
         path, label = self.samples[idx]
         img1 = Image.open(path).convert('RGB')
         img2 = Image.open(label)
+        img_name = path.stem
         
         if self.mode == "train":
             i, j, h, w = v2.RandomCrop.get_params(
@@ -60,7 +61,7 @@ class CityScapes(Dataset):
         else:
             img1=self.tensor_transform(img1)
 
-        return img1, img2
+        return img1, img2, img_name
         
         
 
