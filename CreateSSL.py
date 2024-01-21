@@ -75,10 +75,10 @@ def main():
             image = image.cuda()
 
             # forward
-            output1 = model1(image)
+            output1, _, _ = model1(image)
             output1 = nn.functional.softmax(output1, dim=1)
 
-            output2 = model2(image)
+            output2, _, _ = model2(image)
             output2 = nn.functional.softmax(output2, dim=1)
 
 
