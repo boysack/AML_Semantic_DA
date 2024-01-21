@@ -74,6 +74,10 @@ def main():
         hist = np.zeros((args.num_classes, args.num_classes))
         for image, label, _ in tqdm(targetloader):
             # forward
+            image = image.cuda()
+            label = label.type(torch.LongTensor)
+            label = label.long().cuda()
+            
             output1, _, _ = model1(image)
             output1 = nn.functional.softmax(output1, dim=1)
 
