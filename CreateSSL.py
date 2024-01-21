@@ -8,6 +8,7 @@ from cityscapes import CityScapes
 from torch.utils.data import DataLoader
 from model.model_stages import BiSeNet
 from tqdm import tqdm
+from math import floor
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -104,7 +105,7 @@ def main():
             thres.append(0)
             continue        
         x = np.sort(x)
-        thres.append(x[round(len(x)*0.66)])
+        thres.append(x[floor(len(x)*0.66)])
     print( thres )
     thres = np.array(thres)
     thres[thres>0.9]=0.9
