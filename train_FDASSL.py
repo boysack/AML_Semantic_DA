@@ -348,7 +348,7 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
     #model.load_state_dict(torch.load(args.path_model))
 
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
