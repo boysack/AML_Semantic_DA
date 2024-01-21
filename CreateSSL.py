@@ -8,6 +8,7 @@ from cityscapes import CityScapes
 from torch.utils.data import DataLoader
 from model.model_stages import BiSeNet
 from tqdm import tqdm
+from math import floor
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -66,8 +67,12 @@ def main():
 
     # change the mean for different dataset
 
-    predicted_label = np.zeros((len(targetloader), 1024,2048), dtype=np.float16)
+    predicted_label = np.zeros((len(targetloader), 1024,2048), dtype=np.uint8)
     predicted_prob = np.zeros((len(targetloader), 1024,2048), dtype=np.float16)
+    np.save("predicted_label.npy", predicted_label)
+    np.save("predicted_prob.npy", predicted_prob)
+    predicted_label = np.load("predicted_label.npy", mmap_mode='r+')
+    predicted_prob = np.load("predicted_prob.npy", mmap_mode='r+')
     image_name = []
 
     with torch.no_grad():
@@ -94,19 +99,19 @@ def main():
             image_name.append(name[0])
         
     thres = []
-    for i in range(19):
+    for i in tqdm(range(19)):
         x = predicted_prob[predicted_label==i]
         if len(x) == 0:
             thres.append(0)
             continue        
         x = np.sort(x)
-        thres.append(x[np.int(np.round(len(x)*0.66))])
+        thres.append(x[floor(len(x)*0.66)])
     print( thres )
     thres = np.array(thres)
     thres[thres>0.9]=0.9
     print( thres )
 
-    for index in range(len(targetloader)):
+    for index in tqdm(range(len(targetloader))):
         name = image_name[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
