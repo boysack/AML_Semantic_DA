@@ -51,9 +51,9 @@ def main():
     model2.cuda() """
 
     model1 = BiSeNet(backbone=args.backbone, n_classes=args.num_classes, use_conv_last=args.use_conv_last)
-    model1.load_state_dict(torch.load('./results-trialFDA-0.01/best_FDA_0.01.pth'))
+    model1.load_state_dict(torch.load('./results-trialFDA-beta0.01/best_FDA_0.01.pth'))
     model2 = BiSeNet(backbone=args.backbone, n_classes=args.num_classes, use_conv_last=args.use_conv_last)
-    model2.load_state_dict(torch.load('./results-trialFDA-0.05-fromepoch16/best_FDA_0.05.pth'))
+    model2.load_state_dict(torch.load('./results-trialFDA-beta0.05-fromepoch16/best_FDA_0.05.pth'))
 
     model1.eval()
     model1.cuda()
