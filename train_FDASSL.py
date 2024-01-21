@@ -231,7 +231,7 @@ def parse_args():
                        help='How often to save checkpoints (epochs)')
     parse.add_argument('--validation_step',
                        type=int,
-                       default=7,
+                       default=1,
                        help='How often to perform validation (epochs)')
     parse.add_argument('--crop_height',
                        type=int,
@@ -348,7 +348,7 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
     model.load_state_dict(torch.load(args.path_model))
 
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
