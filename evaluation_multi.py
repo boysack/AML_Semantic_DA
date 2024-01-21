@@ -77,7 +77,7 @@ def main():
             image = image.cuda()
             label = label.type(torch.LongTensor)
             label = label.long().cuda()
-            
+
             output1, _, _ = model1(image)
             output1 = nn.functional.softmax(output1, dim=1)
 
@@ -86,6 +86,7 @@ def main():
 
             a, b = 0.5, 0.5
             predict = a*output1 + b*output2 
+            predict = predict.squeeze(0)
             predict = reverse_one_hot(predict)
             predict = np.array(predict.cpu())
 
