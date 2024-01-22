@@ -247,11 +247,11 @@ def parse_args():
                        help='Number of images in each batch')
     parse.add_argument('--learning_rate',
                         type=float,
-                        default=0.01,
+                        default=0.005,
                         help='learning rate used for train')
     parse.add_argument('--learning_rate_D',
                         type=float,
-                        default=0.0001,
+                        default=0.00005,
                         help='learning rate used for train')
     parse.add_argument('--num_workers',
                        type=int,
@@ -348,11 +348,11 @@ def main():
                        drop_last=False)
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
-    #model.load_state_dict(torch.load(args.path_model))
+    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, use_conv_last=args.use_conv_last)
+    model.load_state_dict(torch.load(args.path_model))
 
     model_D1 = FCDiscriminator(num_classes=args.num_classes)
-    #model_D1.load_state_dict(torch.load(args.path_discriminator))
+    model_D1.load_state_dict(torch.load(args.path_discriminator))
 
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
