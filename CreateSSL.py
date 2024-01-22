@@ -56,43 +56,34 @@ def main():
     model2.eval()
     model2.cuda()
 
-    val_dataset = CityScapes(mode='train', crop=False)
+    val_dataset = CityScapes(mode='train', crop=False, resize=True)
     targetloader = DataLoader(val_dataset,
                        batch_size=1,
                        shuffle=False,
                        num_workers=args.num_workers,
                        drop_last=False)
 
-    #targetloader = CreateTrgDataSSLLoader(args)
 
-    # change the mean for different dataset
-
-    predicted_label = np.zeros((len(targetloader), 1024,2048), dtype=np.uint8)
-    predicted_prob = np.zeros((len(targetloader), 1024,2048), dtype=np.float16)
-    np.save("predicted_label.npy", predicted_label)
-    np.save("predicted_prob.npy", predicted_prob)
-    predicted_label = np.load("predicted_label.npy", mmap_mode='r+')
-    predicted_prob = np.load("predicted_prob.npy", mmap_mode='r+')
+    predicted_label = np.zeros((len(targetloader), 512,1024), dtype=np.uint8)
+    predicted_prob = np.zeros((len(targetloader), 512,1024), dtype=np.float16)
     image_name = []
 
     with torch.no_grad():
         for index, (image, _, name) in enumerate(tqdm(targetloader)):
             image = image.cuda()
-
             # forward
+            
             output1, _, _ = model1(image)
             output1 = nn.functional.softmax(output1, dim=1)
-
             output2, _, _ = model2(image)
             output2 = nn.functional.softmax(output2, dim=1)
-
+            
 
             a, b = 0.5, 0.5
             output = a*output1 + b*output2 
-
             output = output.squeeze(0).cpu().numpy()
             output = output.transpose(1,2,0)
-       
+            
             label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
             predicted_label[index] = label.copy()
             predicted_prob[index] = prob.copy()
@@ -120,7 +111,7 @@ def main():
         output = np.asarray(label, dtype=np.uint8)
         output = Image.fromarray(output)
         output.save(f"./Datasets/Cityscapes/Cityspaces/pseudolabels/{name}.png") 
-    
+     
     
 if __name__ == '__main__':
     main()
