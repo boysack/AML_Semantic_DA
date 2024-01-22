@@ -55,6 +55,7 @@ class CityScapes(Dataset):
                 img1, output_size=(512, 1024))
             img1 = TF.crop(img1, i, j, h, w)
             img2 = TF.crop(img2, i, j, h, w)
+        
         if self.resize:
             img1 = TF.resize(img1, (512, 1024))
             img2 = TF.resize(img2, (512, 1024), interpolation=Image.NEAREST)

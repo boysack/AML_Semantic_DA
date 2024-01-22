@@ -38,11 +38,7 @@ class CityScapesSSL(Dataset):
         img2 = Image.open(label)
         img_name = path.stem
         
-        if self.mode == "train" and self.crop:
-            i, j, h, w = v2.RandomCrop.get_params(
-                img1, output_size=(512, 1024))
-            img1 = TF.crop(img1, i, j, h, w)
-            img2 = TF.crop(img2, i, j, h, w)
+        img1 = TF.resize(img1, (512, 1024))
 
         img2 = np.array(img2).astype(np.int32)[np.newaxis, :]
 
