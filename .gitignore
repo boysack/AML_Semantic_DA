@@ -11,3 +11,4 @@ PaperForReview.*
 !*.tex
 !*.pdf
 try.py
+*.pth
