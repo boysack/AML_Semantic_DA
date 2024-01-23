@@ -327,7 +327,7 @@ def main():
     
     dataloader_target = DataLoader(target_dataset,
                        batch_size=args.batch_size,
-                       shuffle=True,
+                       shuffle=False,
                        num_workers=args.num_workers,
                        drop_last=False)
     
@@ -335,7 +335,7 @@ def main():
     
     dataloader_targetSSL = DataLoader(target_datasetSSL,
                        batch_size=args.batch_size,
-                       shuffle=True,
+                       shuffle=False,
                        num_workers=args.num_workers,
                        drop_last=False)
     
