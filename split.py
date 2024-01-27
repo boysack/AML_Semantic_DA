@@ -4,12 +4,13 @@ import shutil
 import os
 from math import floor
 
+# GTA dataset split
 def split_80_20(p1:str, p2:str):
   a = Path(p1)
   b = Path(p2)
 
   images = [f for f in a.iterdir()]
-  labels = [f for f in b.iterdir()] # sia colorate che greyscale?
+  labels = [f for f in b.iterdir()]
 
   samples = list(zip(images, labels))
   shuffle(samples)

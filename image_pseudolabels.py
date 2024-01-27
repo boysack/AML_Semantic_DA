@@ -9,7 +9,7 @@ import numpy as np
 import torchvision
 from utils import FDA_source_to_target_np
 
-#aprire un immagine GTA e una Cittyscapes e fare FDA
+#aprire un' immagine GTA e una Cityscapes e fare FDA
 translation = {255: (0,0,0),0:(128,64,128), 1:(244, 35, 232), 2:(70,70,70), 3:(102,102,156), 5:(153,153,153), 6:(250,170,30), 8:(107,142,35), 9:(152,251,152), 10:(152,251,152), 13:(0,0,142) }
 if __name__ == "__main__":
     gt_path = Path(r"./Datasets/Cityscapes/Cityspaces/gtFine/train/hanover/hanover_000000_000164_gtFine_color.png")
